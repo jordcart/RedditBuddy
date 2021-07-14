@@ -1,15 +1,15 @@
 import requests
 import json
-import time
 
 # search the json for the keyword
 def search_keyword(keyword, json):
     # getting data out of json
     found = []
+    keyword = keyword.lower()
     listings = json["data"]["children"]
     for obj in listings:
-        title = obj["data"]["title"]
-        desc = obj["data"]["selftext"]
+        title = obj["data"]["title"].lower()
+        desc = obj["data"]["selftext"].lower()
         if keyword in desc or keyword in title:
             found.append(obj["data"]["url"])
     return found
@@ -20,4 +20,4 @@ def check_new_listings(subreddit, keyword):
     r = requests.get(url, headers=headers)
     json_object = r.json()
     found = search_keyword(keyword, json_object)
-    print(time.time())
+    return found
