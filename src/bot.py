@@ -41,14 +41,19 @@ async def add(ctx, subreddit, *search):
 
 
 @bot.command()
-async def delete(ctx):
+async def delete(ctx, subreddit, search):
     if not ctx.guild:
-        await ctx.send('Hello!')
+        user_id = ctx.message.author.id
+        result = database.remove_from_database(connection, cursor, user_id, subreddit, search)
+        if result == 1:
+            await ctx.send("No longer tracking the keyword **{}** in **r/{}**.".format(search, subreddit))
+        elif result == 0:
+            await ctx.send("The term **{}** doesnt exist in the database.".format(search))
 
 @bot.command()
 async def list(ctx):
     if not ctx.guild:
-        entries = database.get_all_entries(connection, cursor, ctx.message.author.id)
+        entries = database.get_user_entries(connection, cursor, ctx.message.author.id)
         num_entries = len(entries)
         message = "**You currently have " + str(num_entries) +" search terms:**\n"
         for subreddit, search in entries:
@@ -72,10 +77,14 @@ async def on_command_error(ctx, error):
 
 def search_loop():
     #change to while database is not empty
-    while(1):
-        #reddit.check_new_listings('mechmarket', 'keyboard')
-        time.sleep(3)
+    #while(1):
+    entries = database.get_all_entries(connection, cursor)
+    length = len(entries)
+    sleep_time = 60 / length
+    for index, entry in enumerate(entries):
+        
         pass
+
 
 if __name__ == "__main__":
     # starting scraper on seperate thread

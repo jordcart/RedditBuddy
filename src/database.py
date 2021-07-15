@@ -20,11 +20,30 @@ def add_to_database(connection, cur, user_id, subreddit, keyword, unix_time):
         return 0;
 
 def remove_from_database(connection, cur, user_id, keyword, subreddit):
-    pass
+    sql = "SELECT * FROM Searches WHERE discord_id='{}' AND subreddit='{}' AND keyword='{}';".format(user_id, keyword,
+            subreddit)
+    cur.execute(sql)
+    entries = cur.fetchall()
 
-def get_all_entries(connection, cur, user_id):
-    sql = "SELECT subreddit, keyword FROM Searches WHERE discord_id=\'" + str(user_id) + "\';"
-    print(sql)
+    if entries == []:
+        print("no entries")
+        return 0
+    else: 
+        sql = "DELETE FROM Searches WHERE discord_id='{}' AND subreddit='{}' AND keyword='{}';".format(user_id, keyword,
+                subreddit)
+        cur.execute(sql)
+        connection.commit()
+        return 1
+
+
+def get_user_entries(connection, cur, user_id):
+    sql = "SELECT subreddit, keyword FROM Searches WHERE discord_id='{}';".format(user_id)
+    cur.execute(sql)
+    entries = cur.fetchall()
+    return entries
+
+def get_all_entries(connection, cur):
+    sql = "SELECT * FROM Searches;"
     cur.execute(sql)
     entries = cur.fetchall()
     return entries
