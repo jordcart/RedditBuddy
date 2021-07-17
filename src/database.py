@@ -9,15 +9,15 @@ def add_to_database(connection, cur, user_id, subreddit, keyword, unix_time):
 
     #if listing doesnt exist add to database
     if entries == []:
-        val = (user_id, subreddit, keyword, unix_time)
-        sql = """INSERT INTO Searches (discord_id, subreddit, keyword, last_check) VALUES (%s, %s, %s, %s)"""
+        val = (user_id, subreddit, keyword, unix_time, 0)
+        sql = """INSERT INTO Searches (discord_id, subreddit, keyword, last_check, listings_found) VALUES (%s, %s, %s, %s, %s)"""
         cur.execute(sql, val)
         connection.commit()
         count = cur.rowcount
         print(count, "Record inserted successfully into mobile table")
-        return 1;
+        return True 
     else:
-        return 0;
+        return False 
 
 def remove_from_database(connection, cur, user_id, keyword, subreddit):
     sql = "SELECT * FROM Searches WHERE discord_id='{}' AND subreddit='{}' AND keyword='{}';".format(user_id, keyword,
@@ -26,18 +26,23 @@ def remove_from_database(connection, cur, user_id, keyword, subreddit):
     entries = cur.fetchall()
 
     if entries == []:
-        print("no entries")
-        return 0
+        return False 
     else: 
         sql = "DELETE FROM Searches WHERE discord_id='{}' AND subreddit='{}' AND keyword='{}';".format(user_id, keyword,
                 subreddit)
         cur.execute(sql)
         connection.commit()
-        return 1
+        return True 
 
+# updates the time for when a listing is found as well as incremements a variable containg number of listings found
+def update_entry(connection, cur, user_id, subreddit, keyword, new_time):
+    sql = """UPDATE Searches SET last_check='{}', listings_found=listings_found+1
+             WHERE discord_id='{}' AND subreddit='{}' AND keyword='{}'""".format(new_time, user_id, subreddit, keyword)
+    cur.execute(sql)
+    connection.commit()
 
 def get_user_entries(connection, cur, user_id):
-    sql = "SELECT subreddit, keyword FROM Searches WHERE discord_id='{}';".format(user_id)
+    sql = "SELECT subreddit, keyword, listings_found FROM Searches WHERE discord_id='{}';".format(user_id)
     cur.execute(sql)
     entries = cur.fetchall()
     return entries
