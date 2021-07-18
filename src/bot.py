@@ -37,7 +37,7 @@ async def add(ctx, subreddit, *search):
         search_string = ",".join(search)
         result = database.add_to_database(connection, cursor, ctx.message.author.id, subreddit, search_string, current_time)
         if result == True:
-            await ctx.send("Now tracking the **\"{}\"** in **r/{}**".format(search_string, subreddit))
+            await ctx.send("Now tracking the \"**{}**\" in **r/{}**".format(search_string, subreddit))
         elif result == False:
             await ctx.send("You have already set that term, check your terms with **!list**")
 
@@ -46,11 +46,12 @@ async def add(ctx, subreddit, *search):
 async def delete(ctx, subreddit, search):
     if not ctx.guild:
         user_id = ctx.message.author.id
+        subreddit = subreddit.replace("r/", "")
         result = database.remove_from_database(connection, cursor, user_id, subreddit, search)
         if result == True:
-            await ctx.send("No longer tracking **\"{}\"** in **r/{}**.".format(search, subreddit))
+            await ctx.send("No longer tracking \"**{}**\" in **r/{}**.".format(search, subreddit))
         elif result == False:
-            await ctx.send("The term **\"{}\"** doesnt exist in the database.".format(search))
+            await ctx.send("The term \"**{}**\" doesnt exist in the database.".format(search))
 
 @bot.command()
 async def list(ctx):
@@ -59,7 +60,7 @@ async def list(ctx):
         num_entries = len(entries)
         message = "**You currently have {} search terms:**\n".format(str(num_entries))
         for subreddit, search, found in entries:
-            message += "r/{} - \"{}\" - {} listings found.\n".format(subreddit, search, found)
+            message += "r/{} - {} - {} listings found.\n".format(subreddit, search, found)
 
         await ctx.send(message)
 
@@ -81,17 +82,16 @@ async def on_command_error(ctx, error):
 async def search_loop():
     entries = database.get_all_entries(connection, cursor)
     # get a list containing all of the found listings
-    listings = await reddit.check_listings(reddit_connection, entries)
-    print(listings)
-    
-    # iterate on list and send dms to people
-    max_time = 0
-    for l in listings:
-        user_id = l[0]; subreddit = l[1]; keyword = l[2]; url = l[3]; new_time = l[4]
-        user = await bot.fetch_user(user_id)
-        await user.send("Found **\"{}\"** in **r/{}** - {}". format(keyword, subreddit, url))
-        max_time = max(new_time, max_time)
-        database.update_entry(connection, cursor, user_id, subreddit, keyword, max_time)
+    if entries != []:
+        listings = await reddit.check_listings(reddit_connection, entries)
+        # iterate on list and send dms to people
+        max_time = 0
+        for l in listings:
+            user_id = l[0]; subreddit = l[1]; keyword = l[2]; url = l[3]; new_time = l[4]
+            user = await bot.fetch_user(user_id)
+            await user.send("Found **\"{}\"** in **r/{}** - {}". format(keyword, subreddit, url))
+            max_time = max(new_time, max_time)
+            database.update_entry(connection, cursor, user_id, subreddit, keyword, max_time)
 
 @search_loop.before_loop
 async def before_search():
