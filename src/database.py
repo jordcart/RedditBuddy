@@ -44,20 +44,31 @@ def remove_from_database(connection, cur, user_id, keyword, subreddit):
 def update_entry(connection, cur, user_id, subreddit, keyword, new_time):
     sql = "UPDATE Searches SET last_check=%s, listings_found=listings_found+1 WHERE discord_id=%s AND subreddit=%s AND keyword=%s"
     val = (str(new_time), str(user_id), subreddit, keyword, )
-    cur.execute(sql, val)
-    connection.commit()
+    try:
+        cur.execute(sql, val)
+        connection.commit()
+    except:
+        print(error)
 
 def get_user_entries(connection, cur, user_id):
     sql = "SELECT subreddit, keyword, listings_found FROM Searches WHERE discord_id=%s;"
     val = (str(user_id), )
-    cur.execute(sql, val)
-    entries = cur.fetchall()
+    try:
+        cur.execute(sql, val)
+        entries = cur.fetchall()
+    except:
+        print(error)
+        return None
     return entries
 
 def get_all_entries(connection, cur):
     sql = "SELECT * FROM Searches;"
-    cur.execute(sql)
-    entries = cur.fetchall()
+    try:
+        cur.execute(sql)
+        entries = cur.fetchall()
+    except:
+        print(error)
+        return None
     return entries
 
 def connect_to_database(user, database, password, host, port):

@@ -1,0 +1,13 @@
+**Commands:**
+**!add (subreddit) (keywords)**: add a keyword that you want to be notified about.
+**!delete (subreddit) (keywords)**: delete a keyword that you have set.
+**!list**: displays a list of all currently added keywords
+
+**A note on keywords:**
+Keywords can be chained together or treated as individual search terms. To search for an exact phrase, use quotation marks.
+For example, if I were to search for the keywords **quick fox** and a post had the phrase: 
+"The **quick** brown **fox** jumps over the lazy dog" you would get a notification as it matches the bolded text.
+However if you typed in **"quick fox"** as an exact search, with the quotation marks, then you would NOT get a notification for that phrase.
+
+Same thing applies for deleting a keyword, if the keyword was an exact search, then use quotations around the search term when deleting it, otherwise just type the word normally.
+If you are unsure about what to type to delete a listing, type !list and type the keyword how you see it there.

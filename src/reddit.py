@@ -15,10 +15,9 @@ async def check_listings(connection, entries):
                 # if all words from the database are in the reddit post
                 if all(x in post.title or x in post.selftext for x in keywords):
                     # checking if we have not seen the post before
-                    last_time = float(entry[3])
-                    post_time = float(post.created_utc)
-                    if post.created_utc > last_time:
+                    if float(post.created_utc) > float(entry[3]):
                         url = "https://redd.it/{}".format(post.id)
                         tup = (entry[0], entry[1], entry[2], url, post.created_utc)
                         listings.append(tup)
+
     return listings 

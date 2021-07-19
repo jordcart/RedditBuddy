@@ -19,7 +19,7 @@ connection = database.connect_to_database(USER, DATABASE, PASSWORD, HOST, PORT)
 cursor = connection.cursor()
 bot = commands.Bot(command_prefix='!', help_command=None)
 
-reddit_connection = asyncpraw.Reddit('bot-1')
+rc = asyncpraw.Reddit('bot-1')
 
 @bot.event
 async def on_ready():
@@ -28,30 +28,52 @@ async def on_ready():
 @bot.command()
 async def help(ctx):
     if not ctx.guild:
-        await ctx.send('Hello!')
+        file = open("help.txt")
+        line = file.read()
+        file.close()
+        print(line)
+        await ctx.send(line)
 
 @bot.command()
-async def add(ctx, subreddit, *search):
+async def add(ctx, sub, *search):
     if not ctx.guild:
-        current_time = int(time.time())
-        search_string = ",".join(search)
-        result = database.add_to_database(connection, cursor, ctx.message.author.id, subreddit, search_string, current_time)
-        if result == True:
-            await ctx.send("Now tracking the \"**{}**\" in **r/{}**".format(search_string, subreddit))
-        elif result == False:
-            await ctx.send("You have already set that term, check your terms with **!list**")
+        sub = sub.lower()
+        exists = True
+        sub = sub.replace('r/', '').replace('\'', '')
+        try:
+            subreddit = [s async for s in rc.subreddits.search_by_name(sub, exact=True)]
+        except Exception as e:
+            exists = False
+
+        if exists == True:
+            current_time = int(time.time())
+            if len(search) == 1:
+                search_string = "\"" + search[0] + "\"" 
+            else:
+                search_string = " ".join(search)
+            result = database.add_to_database(connection, cursor, ctx.message.author.id, sub, search_string, current_time)
+            if result == True:
+                await ctx.send("Now tracking the **{}** in **r/{}**".format(search_string, sub))
+            elif result == False:
+                await ctx.send("You have already set that term, check your terms with **!list**")
+        if exists == False:
+            await ctx.send("The subreddit **{}** doesn't exist. Please try again.".format(sub))
 
 
 @bot.command()
-async def delete(ctx, subreddit, search):
+async def delete(ctx, subreddit, *search):
     if not ctx.guild:
         user_id = ctx.message.author.id
         subreddit = subreddit.replace("r/", "")
-        result = database.remove_from_database(connection, cursor, user_id, subreddit, search)
+        if len(search) == 1:
+            search_string = "\"" + search[0] + "\"" 
+        else:
+            search_string = " ".join(search)
+        result = database.remove_from_database(connection, cursor, user_id, subreddit, search_string)
         if result == True:
-            await ctx.send("No longer tracking \"**{}**\" in **r/{}**.".format(search, subreddit))
+            await ctx.send("No longer tracking **{}** in **r/{}**.".format(search_string, subreddit))
         elif result == False:
-            await ctx.send("The term \"**{}**\" doesnt exist in the database.".format(search))
+            await ctx.send("The term **{}** doesnt exist in the database.".format(search_string))
 
 @bot.command()
 async def list(ctx):
@@ -83,7 +105,7 @@ async def search_loop():
     entries = database.get_all_entries(connection, cursor)
     # get a list containing all of the found listings
     if entries != []:
-        listings = await reddit.check_listings(reddit_connection, entries)
+        listings = await reddit.check_listings(rc , entries)
         # iterate on list and send dms to people
         max_time = 0
         for l in listings:
