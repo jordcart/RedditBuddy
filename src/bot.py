@@ -69,11 +69,22 @@ async def add(ctx, sub, *search):
         if exists == True:
             current_time = int(time.time())
             if len(search) == 1:
+                # if one string
                 if " " in search[0]:
-                    pass
-                search_string = search[0]
+                    search_string = "\"" + search[0] + "\""
+                else:
+                    search_string = search[0]
             else:
-                search_string = " ".join(search)
+                search_string = ""
+                for x in search:
+                    print(x)
+                    if " " in x:
+                        search_string += (("\"" + x + "\"") + " ")
+                    else:
+                        search_string += (x + " ")
+
+                search_string = search_string[:-1]
+                print(search_string)
             result = database.add_to_database(connection, cursor, ctx.message.author.id, sub, search_string, current_time)
             if result == True:
                 # send user a message
@@ -97,15 +108,40 @@ async def delete(ctx, subreddit, *search):
 
         user_id = ctx.message.author.id
         subreddit = subreddit.replace("r/", "")
+
+        # checking if there is only one search term
         if len(search) == 1:
-            search_string = search[0]
+            # case where there are multiple search terms surrounded by quotes
+            if " " in search[0]:
+                search_string = "\"" + search[0] + "\""
+            # case where it is actually one search term 
+            else:
+                search_string = search[0]
+        # case where there is more than one search term
         else:
-            search_string = " ".join(search)
+            search_string = ""
+            for x in search:
+                if " " in x:
+                    search_string += ("\"" + x + "\"") + " "
+                else:
+                    search_string += x + " "
+            search_string = search_string[:-1]
+            print(search_string)
         result = database.remove_from_database(connection, cursor, user_id, subreddit, search_string)
         if result == True:
             await ctx.send("No longer tracking the keyword **{}** in **r/{}**.".format(search_string, subreddit))
         elif result == False:
             await ctx.send("The term **{}** with the subreddit **r/{}** does not exist in the database.".format(search_string, subreddit))
+
+@bot.command()
+async def deleteall(ctx):
+    if not ctx.guild:
+        user_id = ctx.message.author.id
+        result = database.delete_all_user_entries(connection, cursor, user_id)
+        if result == True:
+            await ctx.send("All entries have been deleted.")
+        elif result == False:
+            await ctx.send("An error occured while while deleting your entries. Please try again.")
 
 @bot.command()
 async def list(ctx):
@@ -140,6 +176,11 @@ async def search_loop():
     # get a list containing all of the found listings
     if entries != []:
         listings = await reddit.check_listings(rc , entries)
+
+        print(listings)
+        if listings != []:
+            database.add_found_listings(connection, cursor, len(listings))
+
         # iterate on list and send dms to people
         max_time = 0
         for l in listings:

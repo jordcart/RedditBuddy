@@ -1,7 +1,8 @@
 **Commands:**
 **!add (subreddit) (keywords)**: add a keyword that you want to be notified about.
 **!delete (subreddit) (keywords)**: delete a keyword that you have set.
-**!list**: displays a list of all currently added keywords
+**!deleteall**: delete all currently tracked keywords. 
+**!list**: display a list of all currently added keywords
 
 **A note on keywords:**
 Keywords can be chained together or treated as individual search terms. To search for an exact phrase, use quotation marks.

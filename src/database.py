@@ -50,6 +50,17 @@ def update_entry(connection, cur, user_id, subreddit, keyword, new_time):
     except:
         print(error)
 
+def delete_all_user_entries(connection, cur, user_id):
+    sql = "DELETE FROM Searches WHERE discord_id=%s;"
+    val = (str(user_id), )
+    try:
+        cur.execute(sql, val)
+        connection.commit()
+    except:
+        print(error)
+        return False
+    return True
+
 def get_user_entries(connection, cur, user_id):
     sql = "SELECT subreddit, keyword, listings_found FROM Searches WHERE discord_id=%s;"
     val = (str(user_id), )
@@ -85,6 +96,17 @@ def add_listing(connection, cur):
     sql = "UPDATE Stats SET all_listings=all_listings+1 WHERE name='main';"
     try:
         cur.execute(sql)
+        connection.commit()
+    except:
+        print(error)
+        return False
+    return True
+
+def add_found_listings(connection, cur, num):
+    sql = "UPDATE Stats SET all_found=all_found+%s WHERE name='main';"
+    val = (num, )
+    try:
+        cur.execute(sql, val)
         connection.commit()
     except:
         print(error)
