@@ -16,30 +16,51 @@ HOST = os.getenv('HOST')
 PORT = os.getenv('PORT')
 
 connection = database.connect_to_database(USER, DATABASE, PASSWORD, HOST, PORT)
-cursor = connection.cursor()
+cursor = connection.cursor() # get database cursor
+# connect to discord
 bot = commands.Bot(command_prefix='!', help_command=None)
 
+# connect to reddit api
 rc = asyncpraw.Reddit('bot-1')
 
 @bot.event
 async def on_ready():
     print(f'{bot.user} has connected to Discord!')
 
+@bot.event
+async def on_message(ctx):
+    channel = bot.get_channel(ctx.channel.id)
+    messages = await ctx.channel.history(limit=5).flatten()
+
+    # this means they are a new user, add to db
+    if len(messages) == 1:
+        database.add_new_user(connection, cursor)
+
+    await bot.process_commands(ctx)
+
+
+# help command
 @bot.command()
 async def help(ctx):
     if not ctx.guild:
         file = open("help.txt")
         line = file.read()
         file.close()
-        print(line)
         await ctx.send(line)
 
+# add new listing to database
 @bot.command()
 async def add(ctx, sub, *search):
     if not ctx.guild:
         sub = sub.lower()
         exists = True
         sub = sub.replace('r/', '').replace('\'', '')
+
+        if len(search) == 0:
+            await ctx.send("Incorrect usage of command, make sure it is formatted like this: " +
+                    "`!add (subreddit) (search term)`")
+            return
+
         try:
             subreddit = [s async for s in rc.subreddits.search_by_name(sub, exact=True)]
         except Exception as e:
@@ -48,12 +69,17 @@ async def add(ctx, sub, *search):
         if exists == True:
             current_time = int(time.time())
             if len(search) == 1:
-                search_string = "\"" + search[0] + "\"" 
+                if " " in search[0]:
+                    pass
+                search_string = search[0]
             else:
                 search_string = " ".join(search)
             result = database.add_to_database(connection, cursor, ctx.message.author.id, sub, search_string, current_time)
             if result == True:
-                await ctx.send("Now tracking the **{}** in **r/{}**".format(search_string, sub))
+                # send user a message
+                await ctx.send("Now tracking the keyword **{}** in **r/{}**".format(search_string, sub))
+                # update statistics database
+                database.add_listing(connection, cursor)
             elif result == False:
                 await ctx.send("You have already set that term, check your terms with **!list**")
         if exists == False:
@@ -63,17 +89,23 @@ async def add(ctx, sub, *search):
 @bot.command()
 async def delete(ctx, subreddit, *search):
     if not ctx.guild:
+        # checking if command was input correctly
+        if len(search) == 0:
+            await ctx.send("Incorrect usage of command, make sure it is formatted like this: " +
+                    "`!delete (subreddit) (search term)`")
+            return
+
         user_id = ctx.message.author.id
         subreddit = subreddit.replace("r/", "")
         if len(search) == 1:
-            search_string = "\"" + search[0] + "\"" 
+            search_string = search[0]
         else:
             search_string = " ".join(search)
         result = database.remove_from_database(connection, cursor, user_id, subreddit, search_string)
         if result == True:
-            await ctx.send("No longer tracking **{}** in **r/{}**.".format(search_string, subreddit))
+            await ctx.send("No longer tracking the keyword **{}** in **r/{}**.".format(search_string, subreddit))
         elif result == False:
-            await ctx.send("The term **{}** doesnt exist in the database.".format(search_string))
+            await ctx.send("The term **{}** with the subreddit **r/{}** does not exist in the database.".format(search_string, subreddit))
 
 @bot.command()
 async def list(ctx):
@@ -94,6 +126,8 @@ async def on_command_error(ctx, error):
                 "`!add (subreddit) (search term)`")
     elif ctx.command == delete:
         print(error)
+        await ctx.send("Incorrect usage of command, make sure it is formatted like this: " +
+                "`!delete (subreddit) (search term)`")
     elif ctx.command == list:
         print(error)
     elif ctx.command == None:

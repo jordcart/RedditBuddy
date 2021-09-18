@@ -7,6 +7,7 @@ async def check_listings(connection, entries):
 
     listings = []
 
+    print("starting loop")
     async for post in subreddits.new(limit=100):
         for entry in entries:
             subreddit = entry[1]
@@ -19,5 +20,6 @@ async def check_listings(connection, entries):
                         url = "https://redd.it/{}".format(post.id)
                         tup = (entry[0], entry[1], entry[2], url, post.created_utc)
                         listings.append(tup)
+    print("finished loop")
 
     return listings 

@@ -1,7 +1,7 @@
 import psycopg2
 
 def add_to_database(connection, cur, user_id, subreddit, keyword, unix_time):
-    #checking if listing already exists
+    #checking if entry already exists
     sql = "SELECT * FROM Searches WHERE discord_id=%s AND subreddit=%s AND keyword=%s;"
     val = (str(user_id), subreddit, keyword)
     cur.execute(sql, val)
@@ -70,6 +70,26 @@ def get_all_entries(connection, cur):
         print(error)
         return None
     return entries
+
+def add_new_user(connection, cur):
+    sql = "UPDATE Stats SET all_users=all_users+1 WHERE name='main';"
+    try:
+        cur.execute(sql)
+        connection.commit()
+    except:
+        print(error)
+        return False
+    return True
+
+def add_listing(connection, cur):
+    sql = "UPDATE Stats SET all_listings=all_listings+1 WHERE name='main';"
+    try:
+        cur.execute(sql)
+        connection.commit()
+    except:
+        print(error)
+        return False
+    return True
 
 def connect_to_database(user, database, password, host, port):
     myConnection = psycopg2.connect(
