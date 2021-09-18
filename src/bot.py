@@ -4,6 +4,7 @@ import reddit
 import database
 import time
 import asyncpraw
+import discord
 from discord.ext import commands, tasks
 from dotenv import load_dotenv
 
@@ -82,10 +83,10 @@ async def add(ctx, sub, *search):
                         search_string += (("\"" + x + "\"") + " ")
                     else:
                         search_string += (x + " ")
-
                 search_string = search_string[:-1]
-                print(search_string)
+
             result = database.add_to_database(connection, cursor, ctx.message.author.id, sub, search_string, current_time)
+            await set_status() 
             if result == True:
                 # send user a message
                 await ctx.send("Now tracking the keyword **{}** in **r/{}**".format(search_string, sub))
@@ -126,10 +127,11 @@ async def delete(ctx, subreddit, *search):
                 else:
                     search_string += x + " "
             search_string = search_string[:-1]
-            print(search_string)
+
         result = database.remove_from_database(connection, cursor, user_id, subreddit, search_string)
         if result == True:
             await ctx.send("No longer tracking the keyword **{}** in **r/{}**.".format(search_string, subreddit))
+            set_status()
         elif result == False:
             await ctx.send("The term **{}** with the subreddit **r/{}** does not exist in the database.".format(search_string, subreddit))
 
@@ -140,6 +142,7 @@ async def deleteall(ctx):
         result = database.delete_all_user_entries(connection, cursor, user_id)
         if result == True:
             await ctx.send("All entries have been deleted.")
+            set_status()
         elif result == False:
             await ctx.send("An error occured while while deleting your entries. Please try again.")
 
@@ -194,6 +197,11 @@ async def search_loop():
 async def before_search():
     print('waiting for bot to start...')
     await bot.wait_until_ready()
+
+async def set_status():
+    num_users = database.get_number_of_unique_users(connection, cursor)[0][0]
+    num_entries = database.get_number_of_entries(connection, cursor)[0][0]
+    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="{} terms for {} users".format(num_entries, num_users)))
 
 if __name__ == "__main__":
     # starting scraper in seperate coroutine 

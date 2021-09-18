@@ -113,6 +113,26 @@ def add_found_listings(connection, cur, num):
         return False
     return True
 
+def get_number_of_unique_users(connection, cur):
+    sql = "SELECT COUNT(DISTINCT discord_id) FROM Searches;" 
+    try:
+        cur.execute(sql)
+        count = cur.fetchall()
+    except:
+        print(error)
+        return None 
+    return count 
+
+def get_number_of_entries(connection, cur):
+    sql = "SELECT COUNT(*) FROM Searches;" 
+    try:
+        cur.execute(sql)
+        count = cur.fetchall()
+    except:
+        print(error)
+        return None 
+    return count 
+
 def connect_to_database(user, database, password, host, port):
     myConnection = psycopg2.connect(
             user=user,
