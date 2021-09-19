@@ -36,7 +36,6 @@ async def on_message(ctx):
     # this means they are a new user, add to db
     if len(messages) == 1:
         database.add_new_user(connection, cursor)
-
     await bot.process_commands(ctx)
 
 
@@ -131,7 +130,7 @@ async def delete(ctx, subreddit, *search):
         result = database.remove_from_database(connection, cursor, user_id, subreddit, search_string)
         if result == True:
             await ctx.send("No longer tracking the keyword **{}** in **r/{}**.".format(search_string, subreddit))
-            set_status()
+            await set_status()
         elif result == False:
             await ctx.send("The term **{}** with the subreddit **r/{}** does not exist in the database.".format(search_string, subreddit))
 
@@ -142,7 +141,7 @@ async def deleteall(ctx):
         result = database.delete_all_user_entries(connection, cursor, user_id)
         if result == True:
             await ctx.send("All entries have been deleted.")
-            set_status()
+            await set_status()
         elif result == False:
             await ctx.send("An error occured while while deleting your entries. Please try again.")
 
@@ -189,7 +188,7 @@ async def search_loop():
         for l in listings:
             user_id = l[0]; subreddit = l[1]; keyword = l[2]; url = l[3]; new_time = l[4]
             user = await bot.fetch_user(user_id)
-            await user.send("Found **\"{}\"** in **r/{}** - {}". format(keyword, subreddit, url))
+            await user.send("Found **{}** in **r/{}** - {}". format(keyword, subreddit, url))
             max_time = max(new_time, max_time)
             database.update_entry(connection, cursor, user_id, subreddit, keyword, max_time)
 
