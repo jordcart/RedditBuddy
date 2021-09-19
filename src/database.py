@@ -14,7 +14,7 @@ def add_to_database(connection, cur, user_id, subreddit, keyword, unix_time):
         try:
             cur.execute(sql, val)
             connection.commit()
-        except:
+        except Exception as error:
             return False
 
         print("Entry inserted successfully into table")
@@ -28,7 +28,7 @@ def remove_from_database(connection, cur, user_id, keyword, subreddit):
     try:
         cur.execute(sql, val)
         entries = cur.fetchall()
-    except:
+    except Exception as error:
         return False
 
     if entries == []:
@@ -47,7 +47,7 @@ def update_entry(connection, cur, user_id, subreddit, keyword, new_time):
     try:
         cur.execute(sql, val)
         connection.commit()
-    except:
+    except Exception as error:
         print(error)
 
 def delete_all_user_entries(connection, cur, user_id):
@@ -56,7 +56,7 @@ def delete_all_user_entries(connection, cur, user_id):
     try:
         cur.execute(sql, val)
         connection.commit()
-    except:
+    except Exception as error:
         print(error)
         return False
     return True
@@ -67,7 +67,7 @@ def get_user_entries(connection, cur, user_id):
     try:
         cur.execute(sql, val)
         entries = cur.fetchall()
-    except:
+    except Exception as error:
         print(error)
         return None
     return entries
@@ -77,7 +77,7 @@ def get_all_entries(connection, cur):
     try:
         cur.execute(sql)
         entries = cur.fetchall()
-    except:
+    except Exception as error:
         print(error)
         return None
     return entries
@@ -87,7 +87,7 @@ def add_new_user(connection, cur):
     try:
         cur.execute(sql)
         connection.commit()
-    except:
+    except Exception as error:
         print(error)
         return False
     return True
@@ -97,7 +97,7 @@ def add_listing(connection, cur):
     try:
         cur.execute(sql)
         connection.commit()
-    except:
+    except Exception as error:
         print(error)
         return False
     return True
@@ -108,7 +108,7 @@ def add_found_listings(connection, cur, num):
     try:
         cur.execute(sql, val)
         connection.commit()
-    except:
+    except Exception as error:
         print(error)
         return False
     return True
@@ -118,7 +118,7 @@ def get_number_of_unique_users(connection, cur):
     try:
         cur.execute(sql)
         count = cur.fetchall()
-    except:
+    except Exception as error:
         print(error)
         return None 
     return count 
@@ -128,7 +128,7 @@ def get_number_of_entries(connection, cur):
     try:
         cur.execute(sql)
         count = cur.fetchall()
-    except:
+    except Exception as error:
         print(error)
         return None 
     return count 
