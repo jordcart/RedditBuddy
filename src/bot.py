@@ -179,7 +179,6 @@ async def search_loop():
     if entries != []:
         listings = await reddit.check_listings(rc , entries)
 
-        print(listings)
         if listings != []:
             database.add_found_listings(connection, cursor, len(listings))
 
