@@ -74,6 +74,10 @@ async def add(ctx, sub, *search):
                     search_string = "\"" + search[0] + "\""
                 else:
                     search_string = search[0]
+
+                # checking this weird case
+                if search_string == "":
+                    search_string = " "
             else:
                 search_string = ""
                 for x in search:
@@ -85,14 +89,19 @@ async def add(ctx, sub, *search):
                 search_string = search_string[:-1]
 
             result = database.add_to_database(connection, cursor, ctx.message.author.id, sub, search_string, current_time)
-            await set_status() 
             if result == True:
                 # send user a message
-                await ctx.send("Now tracking the keyword **{}** in **r/{}**".format(search_string, sub))
+                if search_string == " ":
+                    await ctx.send("Now tracking all new posts in **r/{}**.".format(sub))
+                else:
+                    await ctx.send("Now tracking the keyword **{}** in **r/{}**.".format(search_string, sub))
+
+                # update status for bot description
+                await set_status() 
                 # update statistics database
                 database.add_listing(connection, cursor)
             elif result == False:
-                await ctx.send("You have already set that term, check your terms with **!list**")
+                await ctx.send("You have already set that term, check your terms with **!list**.")
         if exists == False:
             await ctx.send("The subreddit **{}** doesn't exist. Please try again.".format(sub))
 
@@ -117,6 +126,10 @@ async def delete(ctx, subreddit, *search):
             # case where it is actually one search term 
             else:
                 search_string = search[0]
+
+            if search_string == "":
+                search_string = " "
+            print(search_string)
         # case where there is more than one search term
         else:
             search_string = ""
@@ -129,7 +142,10 @@ async def delete(ctx, subreddit, *search):
 
         result = database.remove_from_database(connection, cursor, user_id, subreddit, search_string)
         if result == True:
-            await ctx.send("No longer tracking the keyword **{}** in **r/{}**.".format(search_string, subreddit))
+            if search_string == " ":
+                await ctx.send("No longer tracking all new posts in **r/{}**.".format(subreddit))
+            else:
+                await ctx.send("No longer tracking the keyword **{}** in **r/{}**.".format(search_string, subreddit))
             await set_status()
         elif result == False:
             await ctx.send("The term **{}** with the subreddit **r/{}** does not exist in the database.".format(search_string, subreddit))
