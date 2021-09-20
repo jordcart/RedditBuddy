@@ -81,7 +81,6 @@ async def add(ctx, sub, *search):
             else:
                 search_string = ""
                 for x in search:
-                    print(x)
                     if " " in x:
                         search_string += (("\"" + x + "\"") + " ")
                     else:
@@ -129,7 +128,6 @@ async def delete(ctx, subreddit, *search):
 
             if search_string == "":
                 search_string = " "
-            print(search_string)
         # case where there is more than one search term
         else:
             search_string = ""
