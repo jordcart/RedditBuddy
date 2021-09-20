@@ -12,3 +12,6 @@ However if you typed in **"quick fox"** as an exact search, with the quotation m
 
 Same thing applies for deleting a keyword, if the keyword was an exact search, then use quotations around the search term when deleting it, otherwise just type the word normally.
 If you are unsure about what to type to delete a listing, type !list and type the keyword how you see it there.
+
+**Notifications on all posts**
+If you would like to get notifications for all new posts in a subreddit, use this command: `!add (subreddit) ""`
