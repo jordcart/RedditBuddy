@@ -208,6 +208,9 @@ async def search_loop():
             if len(desc) > 200:
                 desc = desc[:200] + ". . ."
 
+            if len(title) > 200:
+                title = title[:200] + ". . ."
+
             user = await bot.fetch_user(user_id)
             embed=discord.Embed(title=title, description=desc, color=0x45beff)
 
