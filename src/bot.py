@@ -75,7 +75,7 @@ async def add(ctx, sub, *search):
                 else:
                     search_string = search[0]
 
-                # checking this weird case
+                # case search term is empty string
                 if search_string == "":
                     search_string = " "
             else:
@@ -166,7 +166,10 @@ async def list(ctx):
         num_entries = len(entries)
         message = "**You currently have {} search terms:**\n".format(str(num_entries))
         for subreddit, search, found in entries:
-            message += "r/{} - {} - {} listings found.\n".format(subreddit, search, found)
+            if search == " ":
+                message += "r/{} - \"\" - {} listings found.\n".format(subreddit, found)
+            else:
+                message += "r/{} - {} - {} listings found.\n".format(subreddit, search, found)
 
         await ctx.send(message)
 
@@ -199,9 +202,21 @@ async def search_loop():
         # iterate on list and send dms to people
         max_time = 0
         for l in listings:
-            user_id = l[0]; subreddit = l[1]; keyword = l[2]; url = l[3]; new_time = l[4]
+            user_id = l[0]; subreddit = l[1]; keyword = l[2]; url = l[3]; new_time = l[4]; title = l[5]; desc = l[6]
+
+            # shortening description from reddit post if its too long
+            if len(desc) > 200:
+                desc = desc[:200] + ". . ."
+
             user = await bot.fetch_user(user_id)
-            await user.send("Found **{}** in **r/{}** - {}". format(keyword, subreddit, url))
+            embed=discord.Embed(title=title, description=desc, color=0x45beff)
+
+            # if keyword is empty, send different notification message 
+            if keyword == " ":
+                await user.send("New post in **r/{}** - {}". format(subreddit, url), embed=embed)
+            # regular message
+            else:
+                await user.send("Found **{}** in **r/{}** - {}". format(keyword, subreddit, url), embed=embed)
             max_time = max(new_time, max_time)
             database.update_entry(connection, cursor, user_id, subreddit, keyword, max_time)
 

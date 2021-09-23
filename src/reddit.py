@@ -27,7 +27,7 @@ async def check_listings(connection, entries):
                     # checking if we have not seen the post before
                     if float(post.created_utc) > float(entry[3]):
                         url = "https://redd.it/{}".format(post.id)
-                        tup = (entry[0], entry[1], entry[2], url, post.created_utc)
+                        tup = (entry[0], entry[1], entry[2], url, post.created_utc, post.title, post.selftext)
                         listings.append(tup)
 
     return listings 
