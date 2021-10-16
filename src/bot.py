@@ -191,10 +191,19 @@ async def on_command_error(ctx, error):
 
 @tasks.loop(seconds=10.0)
 async def search_loop():
+    global connection
+    global cursor
+    # check for database connection
+    result = database.verify_db_connection(connection, cursor)
+    # if not connected, reconnect before continuing loop
+    if (result == -1):
+        connection = database.connect_to_database(USER, DATABASE, PASSWORD, HOST, PORT)
+        cursor = connection.cursor() # get database cursor
+
     entries = database.get_all_entries(connection, cursor)
     # get a list containing all of the found listings
     if entries != []:
-        listings = await reddit.check_listings(rc , entries)
+        listings = await reddit.check_listings(rc, entries)
 
         if listings != []:
             database.add_found_listings(connection, cursor, len(listings))

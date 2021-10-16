@@ -1,5 +1,14 @@
 import psycopg2
 
+def verify_db_connection(connection, cur):
+    try:
+        cur.execute("SELECT;")
+    except psycopg2.InterfaceError as e:
+        print(e.message)
+        return -1
+
+    return 0
+
 def add_to_database(connection, cur, user_id, subreddit, keyword, unix_time):
     #checking if entry already exists
     sql = "SELECT * FROM Searches WHERE discord_id=%s AND subreddit=%s AND keyword=%s;"
