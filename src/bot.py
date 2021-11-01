@@ -89,11 +89,15 @@ async def add(ctx, sub, *search):
 
             result = database.add_to_database(connection, cursor, ctx.message.author.id, sub, search_string, current_time)
             if result == True:
+                esc_search_string = escape_chars(search_string)
+                esc_sub = escape_chars(sub)
+                print(search_string, sub)
+
                 # send user a message
                 if search_string == " ":
-                    await ctx.send("Now tracking all new posts in **r/{}**.".format(sub))
+                    await ctx.send("Now tracking all new posts in **r/{}**.".format(esc_search_string))
                 else:
-                    await ctx.send("Now tracking the keyword **{}** in **r/{}**.".format(search_string, sub))
+                    await ctx.send("Now tracking the keyword **{}** in **r/{}**.".format(esc_search_string, esc_sub))
 
                 # update status for bot description
                 await set_status() 
@@ -102,11 +106,12 @@ async def add(ctx, sub, *search):
             elif result == False:
                 await ctx.send("You have already set that term, check your terms with **!list**.")
         if exists == False:
+            esc_sub = escape_chars(sub)
             await ctx.send("The subreddit **{}** doesn't exist. Please try again.".format(sub))
 
 
 @bot.command(name="delete", aliases=["remove"])
-async def delete(ctx, subreddit, *search):
+async def delete(ctx, sub, *search):
     if not ctx.guild:
         # checking if command was input correctly
         if len(search) == 0:
@@ -115,7 +120,7 @@ async def delete(ctx, subreddit, *search):
             return
 
         user_id = ctx.message.author.id
-        subreddit = subreddit.replace("r/", "")
+        sub= sub.replace("r/", "")
 
         # checking if there is only one search term
         if len(search) == 1:
@@ -138,15 +143,19 @@ async def delete(ctx, subreddit, *search):
                     search_string += x + " "
             search_string = search_string[:-1]
 
-        result = database.remove_from_database(connection, cursor, user_id, subreddit, search_string)
+        result = database.remove_from_database(connection, cursor, user_id, sub, search_string)
         if result == True:
+            esc_search_string = escape_chars(search_string)
+            esc_sub = escape_chars(sub)
             if search_string == " ":
-                await ctx.send("No longer tracking all new posts in **r/{}**.".format(subreddit))
+                await ctx.send("No longer tracking all new posts in **r/{}**.".format(esc_sub))
             else:
-                await ctx.send("No longer tracking the keyword **{}** in **r/{}**.".format(search_string, subreddit))
+                await ctx.send("No longer tracking the keyword **{}** in **r/{}**.".format(esc_search_string, esc_sub))
             await set_status()
         elif result == False:
-            await ctx.send("The term **{}** with the subreddit **r/{}** does not exist in the database.".format(search_string, subreddit))
+            esc_search_string = escape_chars(search_string)
+            esc_sub = escape_chars(sub)
+            await ctx.send("The term **{}** with the subreddit **r/{}** does not exist in the database.".format(esc_search_string, esc_sub))
 
 @bot.command()
 async def deleteall(ctx):
@@ -166,10 +175,13 @@ async def list(ctx):
         num_entries = len(entries)
         message = "**You currently have {} search terms:**\n".format(str(num_entries))
         for subreddit, search, found in entries:
+            esc_search_string = escape_chars(search)
+            esc_sub = escape_chars(subreddit)
+
             if search == " ":
-                message += "r/{} - \"\" - {} listings found.\n".format(subreddit, found)
+                message += "r/{} - \"\" - {} listings found.\n".format(esc_sub, found)
             else:
-                message += "r/{} - {} - {} listings found.\n".format(subreddit, search, found)
+                message += "r/{} - {} - {} listings found.\n".format(esc_sub, esc_search_string, found)
 
         await ctx.send(message)
 
@@ -223,12 +235,15 @@ async def search_loop():
             user = await bot.fetch_user(user_id)
             embed=discord.Embed(title=title, description=desc, color=0x45beff)
 
+            esc_keyword = escape_chars(keyword)
+            esc_sub = escape_chars(subreddit)
+
             # if keyword is empty, send different notification message 
             if keyword == " ":
-                await user.send("New post in **r/{}** - {}". format(subreddit, url), embed=embed)
+                await user.send("New post in **r/{}** - {}". format(esc_sub, url), embed=embed)
             # regular message
             else:
-                await user.send("Found **{}** in **r/{}** - {}". format(keyword, subreddit, url), embed=embed)
+                await user.send("Found **{}** in **r/{}** - {}". format(esc_keyword, esc_sub, url), embed=embed)
             max_time = max(new_time, max_time)
             database.update_entry(connection, cursor, user_id, subreddit, keyword, max_time)
 
@@ -241,6 +256,15 @@ async def set_status():
     num_users = database.get_number_of_unique_users(connection, cursor)[0][0]
     num_entries = database.get_number_of_entries(connection, cursor)[0][0]
     await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="{} terms for {} users".format(num_entries, num_users)))
+
+def escape_chars(string):
+    new_string = string
+    chars = ['*','_','|','`','~','>']
+    for ch in chars:
+        if ch in new_string:
+            # replacing ch with escaped version of ch (ex. '*' -> '\*')
+            new_string = new_string.replace(ch, "\\" + ch)
+    return new_string
 
 if __name__ == "__main__":
     # starting scraper in seperate coroutine 
