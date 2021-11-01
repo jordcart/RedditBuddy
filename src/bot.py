@@ -52,6 +52,20 @@ async def help(ctx):
 @bot.command(name="add", aliases=["set"])
 async def add(ctx, sub, *search):
     if not ctx.guild:
+
+        # checking lengths of input strings
+        total = 0
+        for word in search:
+            total += len(word)
+
+        if total >= 256:
+            await ctx.send("**Error:** Search term should be under 256 characters")
+            return
+
+        if len(sub) >= 256:
+            await ctx.send("**Error:** Subreddit should be under 256 characters")
+            return
+
         sub = sub.lower()
         exists = True
         sub = sub.replace('r/', '').replace('\'', '')
@@ -63,10 +77,11 @@ async def add(ctx, sub, *search):
 
         try:
             subreddit = [s async for s in rc.subreddits.search_by_name(sub, exact=True)]
+            print(subreddit)
         except Exception as e:
             exists = False
 
-        if exists == True:
+        if exists == True and subreddit != []:
             current_time = int(time.time())
             if len(search) == 1:
                 # if one string
@@ -105,7 +120,7 @@ async def add(ctx, sub, *search):
                 database.add_listing(connection, cursor)
             elif result == False:
                 await ctx.send("You have already set that term, check your terms with **!list**.")
-        if exists == False:
+        if exists == False or subreddit == []:
             esc_sub = escape_chars(sub)
             await ctx.send("The subreddit **{}** doesn't exist. Please try again.".format(sub))
 
@@ -259,7 +274,7 @@ async def set_status():
 
 def escape_chars(string):
     new_string = string
-    chars = ['*','_','|','`','~','>']
+    chars = ['*','_','|','`','~','>','\\']
     for ch in chars:
         if ch in new_string:
             # replacing ch with escaped version of ch (ex. '*' -> '\*')
