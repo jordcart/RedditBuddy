@@ -49,7 +49,7 @@ async def help(ctx):
         await ctx.send(line)
 
 # add new listing to database
-@bot.command()
+@bot.command(name="add", aliases=["set"])
 async def add(ctx, sub, *search):
     if not ctx.guild:
         sub = sub.lower()
@@ -105,7 +105,7 @@ async def add(ctx, sub, *search):
             await ctx.send("The subreddit **{}** doesn't exist. Please try again.".format(sub))
 
 
-@bot.command()
+@bot.command(name="delete", aliases=["remove"])
 async def delete(ctx, subreddit, *search):
     if not ctx.guild:
         # checking if command was input correctly
