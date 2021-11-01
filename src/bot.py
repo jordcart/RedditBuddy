@@ -19,7 +19,7 @@ PORT = os.getenv('PORT')
 connection = database.connect_to_database(USER, DATABASE, PASSWORD, HOST, PORT)
 cursor = connection.cursor() # get database cursor
 # connect to discord
-bot = commands.Bot(command_prefix='!', help_command=None)
+bot = commands.Bot(command_prefix='!', help_command=None, case_insensitive=True)
 
 # connect to reddit api
 rc = asyncpraw.Reddit('bot-1')
@@ -40,7 +40,7 @@ async def on_message(ctx):
 
 
 # help command
-@bot.command()
+@bot.command(name="help", aliases=["h", "?", "commands"])
 async def help(ctx):
     if not ctx.guild:
         file = open("help.txt")
