@@ -1,4 +1,4 @@
-# redditnotifs
+# RedditBuddy
 
 ### Installation
 ```bash
