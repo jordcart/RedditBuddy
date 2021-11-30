@@ -2,7 +2,7 @@
 
 ### Installation
 ```bash
-git clone https://github.com/jordcart/redditnotifs.git
+git clone https://github.com/jordcart/RedditBuddy.git
 cd redditnotifs
 pip3 install -r requirements.txt
 ```
