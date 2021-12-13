@@ -110,7 +110,7 @@ async def add(ctx, sub, *search):
 
                 # send user a message
                 if search_string == " ":
-                    await ctx.send("Now tracking all new posts in **r/{}**.".format(esc_search_string))
+                    await ctx.send("Now tracking all new posts in **r/{}**.".format(esc_sub))
                 else:
                     await ctx.send("Now tracking the keyword **{}** in **r/{}**.".format(esc_search_string, esc_sub))
 
